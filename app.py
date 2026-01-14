@@ -4,17 +4,16 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime
-from PIL import Image
-from io import BytesIO
 import base64
+from io import BytesIO
+from PIL import Image
 
 # ===============================
-# FUNÇÃO PARA CARREGAR FUNDO
+# FUNÇÃO PARA CARREGAR FUNDO VIA URL
 # ===============================
-def carregar_fundo():
-    # Usa a imagem enviada pelo usuário
-    img_path = "/mnt/data/e5f6ae3e-bf15-47de-9f14-0b5b3e9b57bd.png"
-    img = Image.open(img_path)
+def carregar_fundo_url(url):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
     return img
 
 def set_background(img):
@@ -38,9 +37,10 @@ def set_background(img):
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # ===============================
-# CARREGA FUNDO
+# LINK PÚBLICO DO GITHUB
 # ===============================
-fundo = carregar_fundo()
+img_url = "https://github.com/matheusaqdias/chadefraldas/raw/main/assets/fundo.png"
+fundo = carregar_fundo_url(img_url)
 set_background(fundo)
 
 # ===============================
@@ -64,7 +64,7 @@ ENTRY_DATA = "entry.47767135"
 FRALDAS = {"P": 21, "M": 45, "G": 21}
 
 # ===============================
-# INICIALIZA SESSION STATE
+# SESSION STATE
 # ===============================
 if "estoque_fraldas" not in st.session_state:
     st.session_state["estoque_fraldas"] = []
@@ -121,7 +121,7 @@ Com carinho ❤️
         s.send_message(msg)
 
 # ===============================
-# CONTEÚDO CENTRAL COM FUNDO BRANCO SEMI-TRANSPARENTE
+# CONTEÚDO CENTRAL
 # ===============================
 st.markdown(
     """
