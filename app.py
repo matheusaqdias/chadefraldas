@@ -10,7 +10,6 @@ from datetime import datetime
 # ===============================
 EMAIL = st.secrets["EMAIL"]
 EMAIL_SENHA = st.secrets["EMAIL_SENHA"]
-
 FORM_URL = st.secrets["FORM_URL"]
 
 # IDs reais do seu Google Form
