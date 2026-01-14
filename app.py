@@ -7,7 +7,7 @@ from email.mime.text import MIMEText
 from datetime import datetime
 
 # ===============================
-# CSS
+# BACKGROUND (IMAGEM SEM CORTE)
 # ===============================
 def set_background(image_path):
     with open(image_path, "rb") as f:
@@ -16,11 +16,11 @@ def set_background(image_path):
     css = f"""
     <style>
     .stApp {{
-        background-image: url("data:image/png;base64,{encoded}");
-        background-size: cover;
-        background-position: center;
+        background-image: url("data:image/jpeg;base64,{encoded}");
+        background-size: contain;
+        background-position: center top;
         background-repeat: no-repeat;
-        background-attachment: fixed;
+        background-color: #fdecef;
     }}
     </style>
     """
@@ -29,20 +29,74 @@ def set_background(image_path):
 
 set_background("assets/background.jpeg")
 
-
+# ===============================
+# CSS GLOBAL
+# ===============================
 st.markdown("""
 <style>
+
+/* ---------- CARD ---------- */
 .box {
-    background-color: rgba(255,255,255,0.92);
-    padding: 25px;
-    border-radius: 16px;
-    max-width: 500px;
-    margin: auto;
+    background-color: rgba(255,255,255,0.96);
+    padding: 28px;
+    border-radius: 18px;
+    max-width: 520px;
+    margin: 80px auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
+
+/* ---------- TEXTOS ---------- */
+.box h1, 
+.box h2, 
+.box h3, 
+.box p, 
+.box label, 
+.box span {
+    color: #1f2937 !important;
+    text-align: center;
+}
+
+/* ---------- INPUTS ---------- */
+.stTextInput > div > div > input {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    padding: 10px;
+}
+
+/* Placeholder */
+.stTextInput input::placeholder {
+    color: #9ca3af;
+}
+
+/* ---------- BOTÃO ---------- */
+.stButton > button {
+    background-color: #ec4899;
+    color: white !important;
+    border-radius: 14px;
+    padding: 12px;
+    font-weight: 600;
+    width: 100%;
+    border: none;
+}
+
+.stButton > button:hover {
+    background-color: #db2777;
+}
+
+/* ---------- MENSAGENS ---------- */
+.stSuccess, .stError, .stWarning {
+    border-radius: 12px;
+}
+
+/* ---------- REMOVE FUNDO ESCURO ---------- */
+[data-testid="stAppViewContainer"] {
+    background-color: transparent;
+}
+
 </style>
 """, unsafe_allow_html=True)
-
-
 
 # ===============================
 # SECRETS
@@ -52,7 +106,7 @@ EMAIL_SENHA = st.secrets["EMAIL_SENHA"]
 FORM_URL = st.secrets["FORM_URL"]
 
 # ===============================
-# GOOGLE FORMS (IDs reais)
+# GOOGLE FORMS (IDs)
 # ===============================
 ENTRY_NOME = "entry.823027402"
 ENTRY_EMAIL = "entry.732833617"
@@ -69,7 +123,7 @@ FRALDAS = {
 }
 
 # ===============================
-# INICIALIZA SESSION STATE
+# SESSION STATE
 # ===============================
 if "estoque_fraldas" not in st.session_state:
     st.session_state["estoque_fraldas"] = []
@@ -99,12 +153,7 @@ def enviar_para_google_forms(nome, email, tamanho, data):
         ENTRY_DATA: data
     }
 
-    r = requests.post(
-        FORM_URL,
-        data=payload,
-        timeout=10
-    )
-
+    r = requests.post(FORM_URL, data=payload, timeout=10)
     return r.status_code == 200
 
 
@@ -133,17 +182,15 @@ Com carinho ❤️
         s.send_message(msg)
 
 # ===============================
-# STREAMLIT APP
+# APP
 # ===============================
 st.markdown('<div class="box">', unsafe_allow_html=True)
 
 st.title("🍼 Chá de Fraldas")
 st.write("Preencha seus dados para receber o tamanho da fralda:")
 
-nome = st.text_input("Nome completo")
-email = st.text_input("E-mail")
-
-
+nome = st.text_input("Nome completo", placeholder="Digite seu nome")
+email = st.text_input("E-mail", placeholder="Digite seu e-mail")
 
 if st.button("Confirmar participação"):
     if not nome or not email:
