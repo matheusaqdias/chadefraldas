@@ -4,21 +4,26 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime
+import base64
 
+def set_bg_image(image_file):
+    with open(image_file, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+    st.markdown(
+        f"""
+        <style>
+        body {{
+        background-image: url("data:image/png;base64,{encoded}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-
-page_bg_img = """
-<style>
-body {
-    background-image: url("assets/fundo.png");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-</style>
-"""
-
-st.markdown(page_bg_img, unsafe_allow_html=True)
+set_bg_image("assets/fundo.png")
 
 # ===============================
 # SECRETS
