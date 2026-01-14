@@ -4,44 +4,6 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime
-import base64
-from io import BytesIO
-from PIL import Image
-
-# ===============================
-# FUNÇÃO PARA CARREGAR FUNDO VIA URL
-# ===============================
-def carregar_fundo_url(url):
-    response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
-    return img
-
-def set_background(img):
-    buffered = BytesIO()
-    img.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-    
-    page_bg_img = f"""
-    <style>
-    body {{
-        background-image: url("data:image/png;base64,{img_str}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }}
-    .stApp {{
-        background-color: rgba(0,0,0,0);
-    }}
-    </style>
-    """
-    st.markdown(page_bg_img, unsafe_allow_html=True)
-
-# ===============================
-# LINK PÚBLICO DO GITHUB
-# ===============================
-img_url = "https://github.com/matheusaqdias/chadefraldas/raw/main/assets/fundo.png"
-fundo = carregar_fundo_url(img_url)
-set_background(fundo)
 
 # ===============================
 # SECRETS
@@ -61,10 +23,14 @@ ENTRY_DATA = "entry.47767135"
 # ===============================
 # CONFIGURAÇÃO DAS FRALDAS
 # ===============================
-FRALDAS = {"P": 21, "M": 45, "G": 21}
+FRALDAS = {
+    "P": 21,
+    "M": 45,
+    "G": 21
+}
 
 # ===============================
-# SESSION STATE
+# INICIALIZA SESSION STATE
 # ===============================
 if "estoque_fraldas" not in st.session_state:
     st.session_state["estoque_fraldas"] = []
@@ -80,9 +46,11 @@ if "emails_usados" not in st.session_state:
 def sortear_tamanho():
     if not st.session_state["estoque_fraldas"]:
         return None
+
     tamanho = random.choice(st.session_state["estoque_fraldas"])
     st.session_state["estoque_fraldas"].remove(tamanho)
     return tamanho
+
 
 def enviar_para_google_forms(nome, email, tamanho, data):
     payload = {
@@ -91,11 +59,15 @@ def enviar_para_google_forms(nome, email, tamanho, data):
         ENTRY_TAMANHO: tamanho,
         ENTRY_DATA: data
     }
-    try:
-        r = requests.post(FORM_URL, data=payload, timeout=10)
-        return r.status_code == 200
-    except:
-        return False
+
+    r = requests.post(
+        FORM_URL,
+        data=payload,
+        timeout=10
+    )
+
+    return r.status_code == 200
+
 
 def enviar_email(destinatario, nome, tamanho):
     corpo = f"""
@@ -110,6 +82,7 @@ Aguardamos você no chá!
 
 Com carinho ❤️
 """
+
     msg = MIMEText(corpo)
     msg["Subject"] = "Confirmação – Chá de Fraldas"
     msg["From"] = EMAIL
@@ -121,50 +94,38 @@ Com carinho ❤️
         s.send_message(msg)
 
 # ===============================
-# CONTEÚDO CENTRAL
+# STREAMLIT APP
 # ===============================
-st.markdown(
-    """
-    <div style="
-        background-color: rgba(255,255,255,0.9);
-        padding: 40px;
-        border-radius: 20px;
-        max-width: 600px;
-        margin: 50px auto;
-        text-align: center;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-        font-family: sans-serif;
-    ">
-        <h1 style='margin-bottom:20px;'>🍼 Chá de Fraldas</h1>
-        <p style='margin-bottom:30px;'>Preencha seus dados para receber o tamanho da fralda:</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.title("🍼 Chá de Fraldas")
 
-# ===============================
-# FORMULÁRIO
-# ===============================
-with st.form(key="form_participacao"):
-    nome = st.text_input("Nome completo")
-    email = st.text_input("E-mail")
-    submit = st.form_submit_button("Confirmar participação")
+st.write("Preencha seus dados para receber o tamanho da fralda:")
 
-if submit:
+
+nome = st.text_input("Nome completo")
+email = st.text_input("E-mail")
+
+if st.button("Confirmar participação"):
     if not nome or not email:
         st.warning("Preencha nome e e-mail.")
-    elif email.lower() in st.session_state["emails_usados"]:
+        st.stop()
+
+    if email.lower() in st.session_state["emails_usados"]:
         st.error("Este e-mail já participou do sorteio.")
+        st.stop()
+
+    tamanho = sortear_tamanho()
+
+    if tamanho is None:
+        st.error("Todas as fraldas já foram distribuídas. Obrigado!")
+        st.stop()
+
+    data = datetime.now().strftime("%d/%m/%Y")
+
+    sucesso = enviar_para_google_forms(nome, email, tamanho, data)
+
+    if sucesso:
+        st.session_state["emails_usados"].add(email.lower())
+        enviar_email(email, nome, tamanho)
+        st.success(f"Participação confirmada! 🎉\n\nTamanho sorteado: **{tamanho}**")
     else:
-        tamanho = sortear_tamanho()
-        if tamanho is None:
-            st.error("Todas as fraldas já foram distribuídas. Obrigado!")
-        else:
-            data = datetime.now().strftime("%d/%m/%Y")
-            sucesso = enviar_para_google_forms(nome, email, tamanho, data)
-            if sucesso:
-                st.session_state["emails_usados"].add(email.lower())
-                enviar_email(email, nome, tamanho)
-                st.success(f"Participação confirmada! 🎉\n\nTamanho sorteado: **{tamanho}**")
-            else:
-                st.error("Erro ao registrar no formulário. Tente novamente.")
+        st.error("Erro ao registrar no formulário. Tente novamente.")
