@@ -30,12 +30,15 @@ FRALDAS = {
 }
 
 # ===============================
-# INICIALIZA ESTOQUE
+# INICIALIZA SESSION STATE
 # ===============================
 if "estoque_fraldas" not in st.session_state:
     st.session_state["estoque_fraldas"] = []
     for tamanho, qtd in FRALDAS.items():
         st.session_state["estoque_fraldas"].extend([tamanho] * qtd)
+
+if "emails_usados" not in st.session_state:
+    st.session_state["emails_usados"] = set()
 
 # ===============================
 # FUNÇÕES
@@ -100,12 +103,13 @@ st.write("Preencha seus dados para receber o tamanho da fralda:")
 nome = st.text_input("Nome completo")
 email = st.text_input("E-mail")
 
-fraldas_restantes = len(st.session_state["estoque_fraldas"])
-st.info(f"Fraldas restantes: {fraldas_restantes}")
-
 if st.button("Confirmar participação"):
     if not nome or not email:
         st.warning("Preencha nome e e-mail.")
+        st.stop()
+
+    if email.lower() in st.session_state["emails_usados"]:
+        st.error("Este e-mail já participou do sorteio.")
         st.stop()
 
     tamanho = sortear_tamanho()
@@ -119,6 +123,7 @@ if st.button("Confirmar participação"):
     sucesso = enviar_para_google_forms(nome, email, tamanho, data)
 
     if sucesso:
+        st.session_state["emails_usados"].add(email.lower())
         enviar_email(email, nome, tamanho)
         st.success(f"Participação confirmada! 🎉\n\nTamanho sorteado: **{tamanho}**")
     else:
