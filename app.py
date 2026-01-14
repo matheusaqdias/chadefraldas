@@ -4,31 +4,21 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime
-import base64
 
-# Função para definir imagem de fundo usando base64
-def set_bg_image(image_file):
-    try:
-        with open(image_file, "rb") as f:
-            encoded = base64.b64encode(f.read()).decode()
-        st.markdown(
-            f"""
-            <style>
-            body {{
-                background-image: url("data:image/png;base64,{encoded}");
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-            }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-    except FileNotFoundError:
-        st.error(f"Imagem '{image_file}' não encontrada!")
 
-# Use a função
-set_bg_image("assets/fundo.png")
+page_bg_img = """
+<style>
+body {
+    background-image: url("https://github.com/matheusaqdias/chadefraldas/blob/main/assets/fundo.png?raw=true");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+</style>
+"""
+
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
 
 # ===============================
 # SECRETS
