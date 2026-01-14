@@ -2,91 +2,8 @@ import streamlit as st
 import random
 import requests
 import smtplib
-import base64
 from email.mime.text import MIMEText
 from datetime import datetime
-
-# ===============================
-# BACKGROUND (FORMA COMPATÍVEL)
-# ===============================
-def set_background(image_path):
-    with open(image_path, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
-
-    st.markdown(
-        f"""
-        <style>
-        html, body, .stApp {{
-            height: 100%;
-            margin: 0;
-        }}
-
-        .stApp {{
-            background-image: url("data:image/jpeg;base64,{encoded}");
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-set_background("assets/background.jpeg")
-
-# ===============================
-# CSS DO CARD (LEGIBILIDADE)
-# ===============================
-st.markdown("""
-<style>
-
-.box {
-    background-color: rgba(255,255,255,0.90);
-    padding: 32px;
-    border-radius: 22px;
-    max-width: 520px;
-    margin: 100px auto;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-}
-
-/* Textos */
-.box h1, .box p, .box label {
-    color: #111827 !important;
-    text-align: center;
-}
-
-/* Inputs */
-.stTextInput input {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-    border-radius: 12px;
-    border: 1px solid #d1d5db;
-    padding: 12px;
-}
-
-/* Botão */
-.stButton > button {
-    background-color: #ec4899;
-    color: white !important;
-    border-radius: 14px;
-    padding: 12px;
-    width: 100%;
-    font-weight: 600;
-    border: none;
-}
-
-.stButton > button:hover {
-    background-color: #db2777;
-}
-
-/* Remove fundo padrão */
-[data-testid="stAppViewContainer"] {
-    background: transparent;
-}
-
-</style>
-""", unsafe_allow_html=True)
 
 # ===============================
 # SECRETS
@@ -96,7 +13,7 @@ EMAIL_SENHA = st.secrets["EMAIL_SENHA"]
 FORM_URL = st.secrets["FORM_URL"]
 
 # ===============================
-# GOOGLE FORMS
+# GOOGLE FORMS (IDs reais)
 # ===============================
 ENTRY_NOME = "entry.823027402"
 ENTRY_EMAIL = "entry.732833617"
@@ -104,17 +21,21 @@ ENTRY_TAMANHO = "entry.1668127447"
 ENTRY_DATA = "entry.47767135"
 
 # ===============================
-# FRALDAS
+# CONFIGURAÇÃO DAS FRALDAS
 # ===============================
-FRALDAS = {"P": 21, "M": 45, "G": 21}
+FRALDAS = {
+    "P": 21,
+    "M": 45,
+    "G": 21
+}
 
 # ===============================
-# SESSION STATE
+# INICIALIZA SESSION STATE
 # ===============================
 if "estoque_fraldas" not in st.session_state:
     st.session_state["estoque_fraldas"] = []
-    for t, q in FRALDAS.items():
-        st.session_state["estoque_fraldas"].extend([t] * q)
+    for tamanho, qtd in FRALDAS.items():
+        st.session_state["estoque_fraldas"].extend([tamanho] * qtd)
 
 if "emails_usados" not in st.session_state:
     st.session_state["emails_usados"] = set()
@@ -125,9 +46,10 @@ if "emails_usados" not in st.session_state:
 def sortear_tamanho():
     if not st.session_state["estoque_fraldas"]:
         return None
-    t = random.choice(st.session_state["estoque_fraldas"])
-    st.session_state["estoque_fraldas"].remove(t)
-    return t
+
+    tamanho = random.choice(st.session_state["estoque_fraldas"])
+    st.session_state["estoque_fraldas"].remove(tamanho)
+    return tamanho
 
 
 def enviar_para_google_forms(nome, email, tamanho, data):
@@ -137,21 +59,31 @@ def enviar_para_google_forms(nome, email, tamanho, data):
         ENTRY_TAMANHO: tamanho,
         ENTRY_DATA: data
     }
-    r = requests.post(FORM_URL, data=payload, timeout=10)
+
+    r = requests.post(
+        FORM_URL,
+        data=payload,
+        timeout=10
+    )
+
     return r.status_code == 200
 
 
 def enviar_email(destinatario, nome, tamanho):
-    msg = MIMEText(f"""
+    corpo = f"""
 Olá, {nome}!
 
-Obrigado por participar do Chá de Fraldas da Maria Teresa 😊
+Obrigado por participar do nosso Chá de Fraldas 😊
 
 O tamanho de fralda que ficou para você foi:
 👉 {tamanho}
 
+Aguardamos você no chá!
+
 Com carinho ❤️
-""")
+"""
+
+    msg = MIMEText(corpo)
     msg["Subject"] = "Confirmação – Chá de Fraldas"
     msg["From"] = EMAIL
     msg["To"] = destinatario
@@ -162,11 +94,10 @@ Com carinho ❤️
         s.send_message(msg)
 
 # ===============================
-# APP
+# STREAMLIT APP
 # ===============================
-st.markdown('<div class="box">', unsafe_allow_html=True)
-
 st.title("🍼 Chá de Fraldas")
+
 st.write("Preencha seus dados para receber o tamanho da fralda:")
 
 nome = st.text_input("Nome completo")
@@ -178,21 +109,22 @@ if st.button("Confirmar participação"):
         st.stop()
 
     if email.lower() in st.session_state["emails_usados"]:
-        st.error("Este e-mail já participou.")
+        st.error("Este e-mail já participou do sorteio.")
         st.stop()
 
     tamanho = sortear_tamanho()
-    if not tamanho:
-        st.error("Todas as fraldas já foram distribuídas.")
+
+    if tamanho is None:
+        st.error("Todas as fraldas já foram distribuídas. Obrigado!")
         st.stop()
 
     data = datetime.now().strftime("%d/%m/%Y")
 
-    if enviar_para_google_forms(nome, email, tamanho, data):
+    sucesso = enviar_para_google_forms(nome, email, tamanho, data)
+
+    if sucesso:
         st.session_state["emails_usados"].add(email.lower())
         enviar_email(email, nome, tamanho)
-        st.success(f"Tamanho sorteado: **{tamanho}** 🎉")
+        st.success(f"Participação confirmada! 🎉\n\nTamanho sorteado: **{tamanho}**")
     else:
-        st.error("Erro ao registrar.")
-
-st.markdown("</div>", unsafe_allow_html=True)
+        st.error("Erro ao registrar no formulário. Tente novamente.")
