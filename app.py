@@ -138,7 +138,7 @@ col1, col_central, col3 = st.columns([0.5, 2, 0.5])
 
 with col_central:
     # Título estilizado com HTML para aceitar a fonte serifada
-    st.markdown('<h1 class="titulo-custom">🍼 Chá de <br>Fraldas</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="titulo-custom">🍼 Chá de Fraldas da Maria Teresa<br></h1>', unsafe_allow_html=True)
     
     st.write("Preencha seus dados para receber o tamanho da fralda:")
 
