@@ -1,68 +1,99 @@
 import streamlit as st
 import random
 import requests
-from datetime import datetime
 import smtplib
-from email.message import EmailMessage
+from email.mime.text import MIMEText
+from datetime import datetime
 
-st.title("👶 Chá de Fraldas da Maria Teresa")
-
-FRALDAS = {"P": 21, "M": 45, "G": 21}
-
-if "fraldas" not in st.session_state:
-    st.session_state.fraldas = FRALDAS.copy()
-
-# CONFIG
-FORM_ID = st.secrets["FORM_ID"]
+# ===============================
+# CONFIGURAÇÕES (SECRETS)
+# ===============================
 EMAIL = st.secrets["EMAIL"]
 EMAIL_SENHA = st.secrets["EMAIL_SENHA"]
 
-# IDs dos campos do Form
+FORM_URL = st.secrets["FORM_URL"]
+
+# IDs reais do seu Google Form
 ENTRY_NOME = "entry.823027402"
 ENTRY_EMAIL = "entry.732833617"
 ENTRY_TAMANHO = "entry.1668127447"
 ENTRY_DATA = "entry.47767135"
 
+# ===============================
+# FUNÇÕES
+# ===============================
+
+def sortear_tamanho():
+    tamanhos = ["RN", "P", "M", "G", "XG"]
+    pesos = [1, 2, 3, 3, 2]
+    return random.choices(tamanhos, weights=pesos, k=1)[0]
 
 
-
-def enviar_para_form(nome, email, tamanho):
-    url = f"https://docs.google.com/forms/d/e/{FORM_ID}/formResponse"
-    data = {
+def enviar_para_google_forms(nome, email, tamanho, data):
+    payload = {
         ENTRY_NOME: nome,
         ENTRY_EMAIL: email,
         ENTRY_TAMANHO: tamanho,
-        ENTRY_DATA: datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        ENTRY_DATA: data
     }
-    requests.post(url, data=data)
 
-def enviar_email(dest, nome, tamanho):
-    msg = EmailMessage()
-    msg["Subject"] = "Confirmação Chá de Fraldas"
-    msg["From"] = EMAIL
-    msg["To"] = dest
-    msg.set_content(
-        f"Olá {nome},\n\n"
-        f"O tamanho da fralda ficou: {tamanho}\n\n"
-        "Obrigado por participar!"
+    response = requests.post(
+        FORM_URL,
+        data=payload,
+        timeout=10
     )
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+    return response.status_code
+
+
+def enviar_email(destinatario, nome, tamanho):
+    msg = MIMEText(
+        f"""
+Olá, {nome}!
+
+Obrigado por participar do Chá de Fraldas 😊
+
+O tamanho de fralda que ficou para você foi:
+👉 {tamanho}
+
+Aguardamos você no chá!
+
+Com carinho ❤️
+"""
+    )
+
+    msg["Subject"] = "Confirmação – Chá de Fraldas"
+    msg["From"] = EMAIL
+    msg["To"] = destinatario
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as s:
+        s.starttls()
         s.login(EMAIL, EMAIL_SENHA)
         s.send_message(msg)
 
-nome = st.text_input("Nome")
+
+# ===============================
+# STREAMLIT APP
+# ===============================
+
+st.title("🍼 Chá de Fraldas – Confirmação")
+
+st.write("Preencha os dados abaixo para receber o tamanho da fralda:")
+
+nome = st.text_input("Nome completo")
 email = st.text_input("E-mail")
 
-if st.button("Confirmar"):
-    disponiveis = [k for k, v in st.session_state.fraldas.items() if v > 0]
-    if not disponiveis:
-        st.error("Fraldas esgotadas.")
+if st.button("Confirmar participação"):
+    if not nome or not email:
+        st.warning("Preencha nome e e-mail.")
     else:
-        tamanho = random.choice(disponiveis)
-        st.session_state.fraldas[tamanho] -= 1
+        tamanho = sortear_tamanho()
+        data = datetime.now().strftime("%d/%m/%Y")
 
-        enviar_para_form(nome, email, tamanho)
-        enviar_email(email, nome, tamanho)
+        status = enviar_para_google_forms(nome, email, tamanho, data)
 
-        st.success(f"{nome}, sua fralda é tamanho {tamanho}")
+        if status == 200:
+            enviar_email(email, nome, tamanho)
+            st.success(f"Participação confirmada! 🎉\n\nTamanho sorteado: **{tamanho}**")
+        else:
+            st.error("Erro ao registrar no formulário. Tente novamente.")
