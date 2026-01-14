@@ -23,7 +23,7 @@ ENTRY_EMAIL = "entry.732833617"
 ENTRY_TAMANHO = "entry.1668127447"
 ENTRY_DATA = "entry.47767135"
 
-1YfvHozok8Wc1fUXG7eUuW-rZ6dbwkLW0NQudg5M0D2k
+
 
 
 def enviar_para_form(nome, email, tamanho):
