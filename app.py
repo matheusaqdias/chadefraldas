@@ -2,8 +2,47 @@ import streamlit as st
 import random
 import requests
 import smtplib
+import base64
 from email.mime.text import MIMEText
 from datetime import datetime
+
+# ===============================
+# CSS
+# ===============================
+def set_background(image_path):
+    with open(image_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+
+    css = f"""
+    <style>
+    .stApp {{
+        background-image: url("data:image/png;base64,{encoded}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }}
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+
+set_background("assets/background.jpeg")
+
+
+st.markdown("""
+<style>
+.box {
+    background-color: rgba(255,255,255,0.92);
+    padding: 25px;
+    border-radius: 16px;
+    max-width: 500px;
+    margin: auto;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 
 # ===============================
 # SECRETS
@@ -73,7 +112,7 @@ def enviar_email(destinatario, nome, tamanho):
     corpo = f"""
 Olá, {nome}!
 
-Obrigado por participar do nosso Chá de Fraldas 😊
+Obrigado por participar do nosso Chá de Fraldas da Maria Teresa 😊
 
 O tamanho de fralda que ficou para você foi:
 👉 {tamanho}
@@ -96,12 +135,15 @@ Com carinho ❤️
 # ===============================
 # STREAMLIT APP
 # ===============================
-st.title("🍼 Chá de Fraldas")
+st.markdown('<div class="box">', unsafe_allow_html=True)
 
+st.title("🍼 Chá de Fraldas")
 st.write("Preencha seus dados para receber o tamanho da fralda:")
 
 nome = st.text_input("Nome completo")
 email = st.text_input("E-mail")
+
+
 
 if st.button("Confirmar participação"):
     if not nome or not email:
@@ -128,3 +170,5 @@ if st.button("Confirmar participação"):
         st.success(f"Participação confirmada! 🎉\n\nTamanho sorteado: **{tamanho}**")
     else:
         st.error("Erro ao registrar no formulário. Tente novamente.")
+
+st.markdown('</div>', unsafe_allow_html=True)
