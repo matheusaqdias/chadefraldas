@@ -7,76 +7,65 @@ from email.mime.text import MIMEText
 from datetime import datetime
 
 # ===============================
-# FUNDO COM IMAGEM FULL PAGE
+# BACKGROUND (FORMA COMPATÍVEL)
 # ===============================
-def set_fullscreen_image(image_path):
+def set_background(image_path):
     with open(image_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
 
     st.markdown(
         f"""
         <style>
-        .background {{
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #fdecef;
+        html, body, .stApp {{
+            height: 100%;
+            margin: 0;
         }}
 
-        .background img {{
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+        .stApp {{
+            background-image: url("data:image/jpeg;base64,{encoded}");
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
         }}
-
         </style>
-
-        <div class="background">
-            <img src="data:image/jpeg;base64,{encoded}">
-        </div>
         """,
         unsafe_allow_html=True
     )
 
 
-set_fullscreen_image("assets/background.jpeg")
+set_background("assets/background.jpeg")
 
 # ===============================
-# CSS DO CARD
+# CSS DO CARD (LEGIBILIDADE)
 # ===============================
 st.markdown("""
 <style>
 
 .box {
-    background-color: rgba(255,255,255,0.96);
-    padding: 30px;
-    border-radius: 20px;
+    background-color: rgba(255,255,255,0.90);
+    padding: 32px;
+    border-radius: 22px;
     max-width: 520px;
-    margin: 80px auto;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    margin: 100px auto;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
 }
 
-.box h1,
-.box p,
-.box label {
-    color: #1f2937 !important;
+/* Textos */
+.box h1, .box p, .box label {
+    color: #111827 !important;
     text-align: center;
 }
 
-.stTextInput > div > div > input {
-    background-color: white !important;
+/* Inputs */
+.stTextInput input {
+    background-color: #ffffff !important;
     color: #111827 !important;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid #d1d5db;
-    padding: 10px;
+    padding: 12px;
 }
 
+/* Botão */
 .stButton > button {
     background-color: #ec4899;
     color: white !important;
@@ -91,6 +80,7 @@ st.markdown("""
     background-color: #db2777;
 }
 
+/* Remove fundo padrão */
 [data-testid="stAppViewContainer"] {
     background: transparent;
 }
@@ -116,19 +106,15 @@ ENTRY_DATA = "entry.47767135"
 # ===============================
 # FRALDAS
 # ===============================
-FRALDAS = {
-    "P": 21,
-    "M": 45,
-    "G": 21
-}
+FRALDAS = {"P": 21, "M": 45, "G": 21}
 
 # ===============================
 # SESSION STATE
 # ===============================
 if "estoque_fraldas" not in st.session_state:
     st.session_state["estoque_fraldas"] = []
-    for tamanho, qtd in FRALDAS.items():
-        st.session_state["estoque_fraldas"].extend([tamanho] * qtd)
+    for t, q in FRALDAS.items():
+        st.session_state["estoque_fraldas"].extend([t] * q)
 
 if "emails_usados" not in st.session_state:
     st.session_state["emails_usados"] = set()
@@ -139,9 +125,9 @@ if "emails_usados" not in st.session_state:
 def sortear_tamanho():
     if not st.session_state["estoque_fraldas"]:
         return None
-    tamanho = random.choice(st.session_state["estoque_fraldas"])
-    st.session_state["estoque_fraldas"].remove(tamanho)
-    return tamanho
+    t = random.choice(st.session_state["estoque_fraldas"])
+    st.session_state["estoque_fraldas"].remove(t)
+    return t
 
 
 def enviar_para_google_forms(nome, email, tamanho, data):
@@ -156,19 +142,16 @@ def enviar_para_google_forms(nome, email, tamanho, data):
 
 
 def enviar_email(destinatario, nome, tamanho):
-    corpo = f"""
+    msg = MIMEText(f"""
 Olá, {nome}!
 
-Obrigado por participar do nosso Chá de Fraldas da Maria Teresa 😊
+Obrigado por participar do Chá de Fraldas da Maria Teresa 😊
 
 O tamanho de fralda que ficou para você foi:
 👉 {tamanho}
 
-Aguardamos você no chá!
-
 Com carinho ❤️
-"""
-    msg = MIMEText(corpo)
+""")
     msg["Subject"] = "Confirmação – Chá de Fraldas"
     msg["From"] = EMAIL
     msg["To"] = destinatario
@@ -195,12 +178,11 @@ if st.button("Confirmar participação"):
         st.stop()
 
     if email.lower() in st.session_state["emails_usados"]:
-        st.error("Este e-mail já participou do sorteio.")
+        st.error("Este e-mail já participou.")
         st.stop()
 
     tamanho = sortear_tamanho()
-
-    if tamanho is None:
+    if not tamanho:
         st.error("Todas as fraldas já foram distribuídas.")
         st.stop()
 
@@ -211,6 +193,6 @@ if st.button("Confirmar participação"):
         enviar_email(email, nome, tamanho)
         st.success(f"Tamanho sorteado: **{tamanho}** 🎉")
     else:
-        st.error("Erro ao registrar. Tente novamente.")
+        st.error("Erro ao registrar.")
 
 st.markdown("</div>", unsafe_allow_html=True)
