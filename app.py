@@ -5,6 +5,21 @@ import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime
 
+
+
+page_bg_img = """
+<style>
+body {
+    background-image: url("assets/fundo.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+</style>
+"""
+
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
 # ===============================
 # SECRETS
 # ===============================
@@ -99,6 +114,7 @@ Com carinho ❤️
 st.title("🍼 Chá de Fraldas")
 
 st.write("Preencha seus dados para receber o tamanho da fralda:")
+
 
 nome = st.text_input("Nome completo")
 email = st.text_input("E-mail")
