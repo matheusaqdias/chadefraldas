@@ -6,26 +6,47 @@ from email.mime.text import MIMEText
 from datetime import datetime
 
 # ===============================
-# CONFIGURAÇÕES (SECRETS)
+# SECRETS
 # ===============================
 EMAIL = st.secrets["EMAIL"]
 EMAIL_SENHA = st.secrets["EMAIL_SENHA"]
 FORM_URL = st.secrets["FORM_URL"]
 
-# IDs reais do seu Google Form
+# ===============================
+# GOOGLE FORMS (IDs reais)
+# ===============================
 ENTRY_NOME = "entry.823027402"
 ENTRY_EMAIL = "entry.732833617"
 ENTRY_TAMANHO = "entry.1668127447"
 ENTRY_DATA = "entry.47767135"
 
 # ===============================
+# CONFIGURAÇÃO DAS FRALDAS
+# ===============================
+FRALDAS = {
+    "P": 21,
+    "M": 45,
+    "G": 21
+}
+
+# ===============================
+# INICIALIZA ESTOQUE
+# ===============================
+if "estoque_fraldas" not in st.session_state:
+    st.session_state["estoque_fraldas"] = []
+    for tamanho, qtd in FRALDAS.items():
+        st.session_state["estoque_fraldas"].extend([tamanho] * qtd)
+
+# ===============================
 # FUNÇÕES
 # ===============================
-
 def sortear_tamanho():
-    tamanhos = ["RN", "P", "M", "G", "XG"]
-    pesos = [1, 2, 3, 3, 2]
-    return random.choices(tamanhos, weights=pesos, k=1)[0]
+    if not st.session_state["estoque_fraldas"]:
+        return None
+
+    tamanho = random.choice(st.session_state["estoque_fraldas"])
+    st.session_state["estoque_fraldas"].remove(tamanho)
+    return tamanho
 
 
 def enviar_para_google_forms(nome, email, tamanho, data):
@@ -36,21 +57,20 @@ def enviar_para_google_forms(nome, email, tamanho, data):
         ENTRY_DATA: data
     }
 
-    response = requests.post(
+    r = requests.post(
         FORM_URL,
         data=payload,
         timeout=10
     )
 
-    return response.status_code
+    return r.status_code == 200
 
 
 def enviar_email(destinatario, nome, tamanho):
-    msg = MIMEText(
-        f"""
+    corpo = f"""
 Olá, {nome}!
 
-Obrigado por participar do Chá de Fraldas 😊
+Obrigado por participar do nosso Chá de Fraldas 😊
 
 O tamanho de fralda que ficou para você foi:
 👉 {tamanho}
@@ -59,8 +79,8 @@ Aguardamos você no chá!
 
 Com carinho ❤️
 """
-    )
 
+    msg = MIMEText(corpo)
     msg["Subject"] = "Confirmação – Chá de Fraldas"
     msg["From"] = EMAIL
     msg["To"] = destinatario
@@ -70,29 +90,36 @@ Com carinho ❤️
         s.login(EMAIL, EMAIL_SENHA)
         s.send_message(msg)
 
-
 # ===============================
 # STREAMLIT APP
 # ===============================
+st.title("🍼 Chá de Fraldas")
 
-st.title("🍼 Chá de Fraldas – Confirmação")
-
-st.write("Preencha os dados abaixo para receber o tamanho da fralda:")
+st.write("Preencha seus dados para receber o tamanho da fralda:")
 
 nome = st.text_input("Nome completo")
 email = st.text_input("E-mail")
 
+fraldas_restantes = len(st.session_state["estoque_fraldas"])
+st.info(f"Fraldas restantes: {fraldas_restantes}")
+
 if st.button("Confirmar participação"):
     if not nome or not email:
         st.warning("Preencha nome e e-mail.")
+        st.stop()
+
+    tamanho = sortear_tamanho()
+
+    if tamanho is None:
+        st.error("Todas as fraldas já foram distribuídas. Obrigado!")
+        st.stop()
+
+    data = datetime.now().strftime("%d/%m/%Y")
+
+    sucesso = enviar_para_google_forms(nome, email, tamanho, data)
+
+    if sucesso:
+        enviar_email(email, nome, tamanho)
+        st.success(f"Participação confirmada! 🎉\n\nTamanho sorteado: **{tamanho}**")
     else:
-        tamanho = sortear_tamanho()
-        data = datetime.now().strftime("%d/%m/%Y")
-
-        status = enviar_para_google_forms(nome, email, tamanho, data)
-
-        if status == 200:
-            enviar_email(email, nome, tamanho)
-            st.success(f"Participação confirmada! 🎉\n\nTamanho sorteado: **{tamanho}**")
-        else:
-            st.error("Erro ao registrar no formulário. Tente novamente.")
+        st.error("Erro ao registrar no formulário. Tente novamente.")
