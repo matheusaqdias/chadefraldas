@@ -6,32 +6,22 @@ from email.mime.text import MIMEText
 from datetime import datetime
 from PIL import Image
 from io import BytesIO
+import base64
 
 # ===============================
-# FUNÇÃO PARA CARREGAR IMAGEM
+# FUNÇÃO PARA CARREGAR FUNDO
 # ===============================
 def carregar_fundo():
-    try:
-        # Tenta carregar localmente
-        img = Image.open("assets/fundo.png")
-    except FileNotFoundError:
-        # Se não achar local, pega da URL
-        url = "https://github.com/matheusaqdias/chadefraldas/raw/main/assets/fundo.png"
-        response = requests.get(url)
-        img = Image.open(BytesIO(response.content))
+    # Usa a imagem enviada pelo usuário
+    img_path = "/mnt/data/e5f6ae3e-bf15-47de-9f14-0b5b3e9b57bd.png"
+    img = Image.open(img_path)
     return img
 
-# ===============================
-# FUNÇÃO PARA DEFINIR BACKGROUND
-# ===============================
 def set_background(img):
-    # Converte imagem em base64
-    import base64
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
     
-    # CSS para fundo
     page_bg_img = f"""
     <style>
     body {{
@@ -48,7 +38,7 @@ def set_background(img):
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # ===============================
-# CARREGA E DEFINE FUNDO
+# CARREGA FUNDO
 # ===============================
 fundo = carregar_fundo()
 set_background(fundo)
@@ -131,18 +121,22 @@ Com carinho ❤️
         s.send_message(msg)
 
 # ===============================
-# CONTEÚDO CENTRAL EM DIV TRANSPARENTE
+# CONTEÚDO CENTRAL COM FUNDO BRANCO SEMI-TRANSPARENTE
 # ===============================
 st.markdown(
     """
-    <div style="background-color: rgba(255,255,255,0.85);
-                padding: 30px;
-                border-radius: 15px;
-                max-width: 600px;
-                margin: 50px auto;
-                text-align: center;">
-    <h1>🍼 Chá de Fraldas</h1>
-    <p>Preencha seus dados para receber o tamanho da fralda:</p>
+    <div style="
+        background-color: rgba(255,255,255,0.9);
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 600px;
+        margin: 50px auto;
+        text-align: center;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        font-family: sans-serif;
+    ">
+        <h1 style='margin-bottom:20px;'>🍼 Chá de Fraldas</h1>
+        <p style='margin-bottom:30px;'>Preencha seus dados para receber o tamanho da fralda:</p>
     </div>
     """,
     unsafe_allow_html=True
