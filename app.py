@@ -16,7 +16,7 @@ def aplicar_estilo_customizado():
         <style>
         /* 1. Imagem de fundo em toda a página */
         .stApp {{
-            background-image: url("assets/fundo.png");
+            background-image: url("https://github.com/matheusaqdias/chadefraldas/blob/main/assets/fundo.png");
             background-attachment: fixed;
             background-size: cover;
             background-position: center;
