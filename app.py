@@ -41,40 +41,41 @@ def aplicar_estilo_customizado():
     st.markdown(
         fundo_css + 
         """
+        <style>
         /* 1. Título Customizado */
         .titulo-custom {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 3.2rem;
+            font-size: 3rem;
             color: #000000 !important;
             text-align: left;
-            margin-bottom: 0px;
+            margin-bottom: 10px;
             font-weight: bold;
             line-height: 1.1;
-        }
-
-        /* 2. Forçar textos para PRETO (essencial para tema claro) */
-        p, label, .stMarkdown, [data-testid="stWidgetLabel"] p {
-            color: #000000 !important;
-            font-weight: 700 !important;
             -webkit-text-fill-color: #000000 !important;
         }
 
-        /* 3. Caixas de Input - FORÇAR ESCURO SEMPRE */
-        div[data-baseweb="input"], [data-testid="stTextInput"] div {
+        /* 2. CORREÇÃO DE LEGIBILIDADE (Seta Vermelha) */
+        /* Removemos fundos de labels e forçamos a cor preta */
+        label, .stMarkdown p, [data-testid="stWidgetLabel"] {
+            background-color: transparent !important;
+            color: #000000 !important;
+            font-weight: 800 !important; /* Mais negrito para destacar no fundo */
+            font-size: 1.1rem !important;
+            -webkit-text-fill-color: #000000 !important;
+            text-shadow: none !important;
+        }
+
+        /* 3. Caixas de Input (Fundo escuro fixo) */
+        div[data-baseweb="input"], [data-testid="stTextInput"] > div {
             background-color: #262730 !important;
             border-radius: 15px !important;
             border: 1px solid rgba(255,255,255,0.1) !important;
         }
         
-        /* Cor do texto digitado e do cursor */
+        /* Texto dentro do Input */
         input {
             color: #FFFFFF !important;
             -webkit-text-fill-color: #FFFFFF !important;
-        }
-
-        /* Cor do Placeholder (texto de exemplo) */
-        input::placeholder {
-            color: rgba(255,255,255,0.5) !important;
         }
 
         /* 4. Estilo do botão ROSA */
@@ -94,8 +95,8 @@ def aplicar_estilo_customizado():
             background-color: #f2b6c1 !important;
             color: #000000 !important;
         }
-        
-        /* Ajustes de limpeza */
+
+        /* Limpeza Geral */
         [data-testid="stHeader"] {background: rgba(0,0,0,0);}
         [data-testid="stToolbar"] {visibility: hidden;}
         </style>
