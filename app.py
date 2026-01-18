@@ -54,28 +54,32 @@ def aplicar_estilo_customizado():
             -webkit-text-fill-color: #000000 !important;
         }
 
-        /* 2. CORREÇÃO DE LEGIBILIDADE (Seta Vermelha) */
-        /* Removemos fundos de labels e forçamos a cor preta */
-        label, .stMarkdown p, [data-testid="stWidgetLabel"] {
+        /* 2. Legendas (Labels) - SEMPRE PRETO E SEM FUNDO */
+        label, .stMarkdown p, [data-testid="stWidgetLabel"] p {
             background-color: transparent !important;
             color: #000000 !important;
-            font-weight: 800 !important; /* Mais negrito para destacar no fundo */
+            font-weight: 800 !important;
             font-size: 1.1rem !important;
             -webkit-text-fill-color: #000000 !important;
-            text-shadow: none !important;
         }
 
-        /* 3. Caixas de Input (Fundo escuro fixo) */
+        /* 3. Caixas de Input - SEMPRE ESCURAS */
         div[data-baseweb="input"], [data-testid="stTextInput"] > div {
             background-color: #262730 !important;
             border-radius: 15px !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
         }
         
-        /* Texto dentro do Input */
+        /* TEXTO DIGITADO - FORÇAR BRANCO SEMPRE */
         input {
             color: #FFFFFF !important;
             -webkit-text-fill-color: #FFFFFF !important;
+        }
+
+        /* Cor do texto de exemplo (placeholder) */
+        input::placeholder {
+            color: rgba(255,255,255,0.5) !important;
+            -webkit-text-fill-color: rgba(255,255,255,0.5) !important;
         }
 
         /* 4. Estilo do botão ROSA */
@@ -94,16 +98,16 @@ def aplicar_estilo_customizado():
         .stButton>button:hover {
             background-color: #f2b6c1 !important;
             color: #000000 !important;
+            border: none !important;
         }
 
-        /* Limpeza Geral */
+        /* Limpeza de elementos do Streamlit */
         [data-testid="stHeader"] {background: rgba(0,0,0,0);}
         [data-testid="stToolbar"] {visibility: hidden;}
         </style>
         """,
         unsafe_allow_html=True
     )
-
 aplicar_estilo_customizado()
 
 # ===============================
