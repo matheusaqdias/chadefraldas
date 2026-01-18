@@ -36,43 +36,51 @@ def aplicar_estilo_customizado():
         }}
         """
     except Exception:
-        fundo_css = "<style>.stApp { background-color: #FDFCF0; }"
+        fundo_css = "<style>.stApp {{ background-color: #FDFCF0; }}"
 
     st.markdown(
         fundo_css + 
         """
-        /* 1. Título Customizado (Serifado e elegante) */
+        /* 1. Título Customizado */
         .titulo-custom {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 3.5rem;
-            color: black;
+            font-size: 3.2rem;
+            color: #000000 !important;
             text-align: left;
-            margin-bottom: -10px;
+            margin-bottom: 0px;
             font-weight: bold;
+            line-height: 1.1;
         }
 
-        /* 2. Textos de apoio e labels */
-        p, label, .stMarkdown {
-            color: black !important;
-            font-weight: 600 !important;
+        /* 2. Forçar textos para PRETO (essencial para tema claro) */
+        p, label, .stMarkdown, [data-testid="stWidgetLabel"] p {
+            color: #000000 !important;
+            font-weight: 700 !important;
+            -webkit-text-fill-color: #000000 !important;
         }
 
-        /* 3. Caixas de Input (Fundo escuro como na imagem) */
-        div[data-baseweb="input"] {
+        /* 3. Caixas de Input - FORÇAR ESCURO SEMPRE */
+        div[data-baseweb="input"], [data-testid="stTextInput"] div {
             background-color: #262730 !important;
             border-radius: 15px !important;
-            border: none !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
         }
         
-        /* Cor do texto dentro do input */
+        /* Cor do texto digitado e do cursor */
         input {
-            color: white !important;
+            color: #FFFFFF !important;
+            -webkit-text-fill-color: #FFFFFF !important;
+        }
+
+        /* Cor do Placeholder (texto de exemplo) */
+        input::placeholder {
+            color: rgba(255,255,255,0.5) !important;
         }
 
         /* 4. Estilo do botão ROSA */
         .stButton>button {
-            background-color: #f7d1d7 !important; /* Rosa suave */
-            color: black !important;
+            background-color: #f7d1d7 !important;
+            color: #000000 !important;
             border-radius: 12px;
             width: 100%;
             height: 3.5em;
@@ -83,12 +91,13 @@ def aplicar_estilo_customizado():
         }
         
         .stButton>button:hover {
-            background-color: #f2b6c1 !important; /* Rosa um pouco mais forte no hover */
-            color: black !important;
+            background-color: #f2b6c1 !important;
+            color: #000000 !important;
         }
         
-        /* Remove bordas extras do Streamlit */
+        /* Ajustes de limpeza */
         [data-testid="stHeader"] {background: rgba(0,0,0,0);}
+        [data-testid="stToolbar"] {visibility: hidden;}
         </style>
         """,
         unsafe_allow_html=True
