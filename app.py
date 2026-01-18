@@ -48,36 +48,45 @@ def aplicar_estilo_customizado():
             font-size: 3rem;
             color: #000000 !important;
             text-align: left;
-            margin-bottom: 10px;
             font-weight: bold;
             line-height: 1.1;
             -webkit-text-fill-color: #000000 !important;
         }
 
-        /* 2. Legendas (Labels) - SEMPRE PRETO E SEM FUNDO */
+        /* 2. Legendas (Labels) - Forçar visibilidade no Tema Claro */
         label, .stMarkdown p, [data-testid="stWidgetLabel"] p {
             background-color: transparent !important;
             color: #000000 !important;
             font-weight: 800 !important;
-            font-size: 1.1rem !important;
             -webkit-text-fill-color: #000000 !important;
         }
 
-        /* 3. Caixas de Input - SEMPRE ESCURAS */
-        div[data-baseweb="input"], [data-testid="stTextInput"] > div {
+        /* 3. CAIXAS DE INPUT - Configuração Anti-Tema Claro */
+        /* Forçamos o fundo escuro em todos os estados */
+        [data-testid="stTextInput"] div[data-baseweb="input"], 
+        [data-testid="stTextInput"] div[data-baseweb="base-input"],
+        [data-baseweb="input"] {
             background-color: #262730 !important;
             border-radius: 15px !important;
             border: 1px solid rgba(255,255,255,0.2) !important;
         }
         
-        /* TEXTO DIGITADO - FORÇAR BRANCO SEMPRE */
-        input {
+        /* TEXTO DENTRO DA CAIXA - Forçar BRANCO absoluto */
+        /* O seletor 'input' sozinho às vezes falha no mobile, então miramos no seletor do Streamlit */
+        [data-testid="stTextInput"] input {
+            color: #FFFFFF !important;
+            -webkit-text-fill-color: #FFFFFF !important;
+            caret-color: white !important; /* Cor do pauzinho que pisca */
+        }
+
+        /* Garante que o texto continue branco mesmo quando clicamos na caixa */
+        [data-testid="stTextInput"] input:focus {
             color: #FFFFFF !important;
             -webkit-text-fill-color: #FFFFFF !important;
         }
 
-        /* Cor do texto de exemplo (placeholder) */
-        input::placeholder {
+        /* Placeholder (texto de fundo) */
+        ::placeholder, [data-testid="stTextInput"] input::placeholder {
             color: rgba(255,255,255,0.5) !important;
             -webkit-text-fill-color: rgba(255,255,255,0.5) !important;
         }
@@ -91,23 +100,23 @@ def aplicar_estilo_customizado():
             height: 3.5em;
             font-weight: bold;
             border: none;
-            font-size: 1.1rem;
             box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
         }
         
         .stButton>button:hover {
             background-color: #f2b6c1 !important;
             color: #000000 !important;
-            border: none !important;
         }
 
-        /* Limpeza de elementos do Streamlit */
-        [data-testid="stHeader"] {background: rgba(0,0,0,0);}
-        [data-testid="stToolbar"] {visibility: hidden;}
+        /* Limpeza de cabeçalhos */
+        [data-testid="stHeader"], [data-testid="stToolbar"] {
+            display: none !important;
+        }
         </style>
         """,
         unsafe_allow_html=True
     )
+    
 aplicar_estilo_customizado()
 
 # ===============================
